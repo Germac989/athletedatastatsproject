@@ -1,13 +1,10 @@
 import requests
 import pandas as pd
 
-# API key for API-SPORTS Football API
 API_KEY = 'apikey'
 
-# Define the base URL
 BASE_URL = "https://v3.football.api-sports.io"
 
-# Set up headers required for the API requests
 headers = {
     'x-rapidapi-key': API_KEY,
     'x-rapidapi-host': 'v3.football.api-sports.io'
@@ -19,7 +16,7 @@ def fetch_data(endpoint, params=None):
     url = f"{BASE_URL}/{endpoint}"
     try:
         response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()  # Raise HTTPError for bad responses
+        response.raise_for_status()  
         data = response.json()
         print(f"API Request URL: {response.url}")
         print(f"API Response Status Code: {response.status_code}")
@@ -45,21 +42,19 @@ def process_player_statistics(data):
     """Process player statistics data."""
     if not data:
         print("No data to process.")
-        return pd.DataFrame()  # Return an empty DataFrame if no data
+        return pd.DataFrame() 
 
     players = data.get('response', [])
     if not players:
         print("No player data found in the response.")
-        return pd.DataFrame()  # Return an empty DataFrame if no data found
+        return pd.DataFrame()  
 
     player_data = []
     for player in players:
         player_info = player.get('statistics', [{}])[0]
 
-        # Debug: Print the player_info for inspection
         print(f"Processing player info: {player_info}")
 
-        # Safely handle numeric values
         passes_attempted = player_info.get('passes', {}).get('attempted', 0)
         passes_completed = player_info.get('passes', {}).get('total', 0)
         try:
@@ -100,7 +95,6 @@ def fetch_all_players(season, league):
             print(f"No more data at page {page}.")
             break
 
-        # Append the data from the current page
         players = data.get('response', [])
         if not players:
             print(f"No player data found on page {page}.")
@@ -109,7 +103,6 @@ def fetch_all_players(season, league):
         all_players.extend(players)
         print(f"Fetched page {page} with {len(players)} results.")
 
-        # Check if there are more pages
         paging = data.get('paging', {})
         current_page = paging.get('current', 0)
         total_pages = paging.get('total', 0)
@@ -121,25 +114,19 @@ def fetch_all_players(season, league):
     return all_players
 
 
-# Fetch and print available leagues
 fetch_leagues()
 
-# Define parameters
 season = 2020
 league = 39
 
-# Fetch all player data
 players_data = fetch_all_players(season, league)
 print(f"Total players fetched: {len(players_data)}")
 
-# Convert the data to a DataFrame
 df = process_player_statistics({'response': players_data})
 
-# Debug: Check if DataFrame is empty
 if df.empty:
     print("DataFrame is empty. No data to export.")
 else:
-    # Export the DataFrame to a CSV file
     output_file = 'player_performance_stats.csv'
     df.to_csv(output_file, index=False)
     print(f"Player performance stats have been exported to {output_file}")
